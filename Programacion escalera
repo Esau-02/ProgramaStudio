@@ -1,0 +1,315 @@
+;Programación de PLC AB.
+#SingleInstance Force   ; siempre reemplaza la instancia anterior sin preguntar
+#NoEnv                  ; optimiza rendimiento
+SendMode Input          ; modo de envío más rápido
+
+;Activa la ventana de Logix Designer con el proyecto abierto
+WinActivate, Logix Designer
+WinWaitActive, Logix Designer
+SetTitleMatchMode, 2    ; permite coincidencia parcial
+
+;/////////////////////////////////////////////////// NO MODIFICAR VARIABLES DE ARRIBA ///////////////////////////////////////////////////
+
+;Definir variable.
+SECUENCIA := "SEC_EDIT_MOV"             ;Nombre de la secuencia, variables.
+TOTAL_PASOS := 4                        ;Cantidad de pasos a crear.
+TOTAL_RENGLONES := 5                    ;Cantidad de renglones a crear.
+INCREMENTO_PASOS := 10                  ;Valor para aumento de pasos de 10 en 10.
+INCREMENTO_BITS := 1                    ;Valor para aumento de bits de 1 en 1.
+TIEMPO_TON := 100                       ;Valor de temporizador en pasos.
+ERROR := "Error_General"                ;Bit de error general de máquina.
+INCREMENTO_DRV := 1                     ;Valor para aumento de bits de 1 en 1.
+TITULO_SEC := "SECUENCIA DE EDITAR MOVIMIENTO"
+
+;Lista de textos (puedes poner los que quieras)
+Textos := []
+Textos.Push(["1.1. Se incrementa indice de posición a alcanzar por eje.", "1.2. Se decrementa indice de posición a alcanzar por eje."])
+Textos.Push(["1. Se actualiza indice.", "2. Se reinician bits de estado."])
+Textos.Push(["1. Se carga posición a alcanzar por eje."])
+Textos.Push(["1. Se manda a posición EJE."])
+Textos.Push(["Texto para el quinto."])
+Textos.Push(["Texto para el sexto."])
+Textos.Push(["Texto para el séptimo."])
+Textos.Push(["Texto para el octavo."])
+Textos.Push(["Texto para el noveno."])
+Textos.Push(["Texto para el décimo."])
+
+
+
+;Cambio de pantalla una vez. EL CAMBIO YA SE REALIZA CON LAS LINEAS DEL 6 AL 9.
+;Sleep, 1000
+;Send, !{Tab}
+;Sleep, 500
+;MouseMove, 900, 250
+;Click
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón con bit de secuencia corriendo.
+Send, {Enter}
+Send, NE %SECUENCIA% 0 OTE %SECUENCIA%_ON
+Send, {Enter}
+
+;Se agrega comentario de nombre de rutina.
+Send, {Ctrl down}d{Ctrl up}
+Sleep, 500
+Send, //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   ;No acepta el "#".
+Send, {Enter}
+Send, %TITULO_SEC%
+Send, {Enter}
+Send, //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   ;No acepta el "#".
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter}
+Send, Bit indicador de secuencia corriendo.
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter 3}
+
+
+
+Loop, %TOTAL_PASOS%
+{
+;Valor de índice para loops de pasos.
+Index_Pasos := A_Index
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se define valores para pasos.
+PASO := Index_Pasos * INCREMENTO_PASOS
+VALOR_EQ := Index_Pasos * INCREMENTO_PASOS - 10
+
+;Se configura renglón con comparación (EQ) y verificación de bits.
+;Condición: solo en la primera iteración.
+    if (Index_Pasos = 1) 
+    {
+        Send, {Enter}
+        Send, EQ %SECUENCIA% %VALOR_EQ% XIO %ERROR% XIO %SECUENCIA%_OK XIO %SECUENCIA%_ON OTE %SECUENCIA%_P%PASO%.0
+        Send, {Enter}
+
+        ;Se agrega comentario de paso actual.
+        Send, {Ctrl down}d{Ctrl up}
+        Sleep, 500
+        Send, PASO %PASO%
+        Send, {Enter}
+        Send, ==========================================================================
+        Send, {Enter}
+
+        ;Imprimir todos los textos del paso.
+        For each, texto in Textos[A_Index]
+        {
+            Send, %texto%
+            Send, {Enter}
+        }
+        Send, ==========================================================================
+        Send, {Enter 3}
+    } 
+    else if (Index_Pasos = TOTAL_PASOS)
+    {
+        Send, {Enter}
+        Send, EQ %SECUENCIA% %VALOR_EQ% XIO %ERROR% XIO %SECUENCIA%_OK XIC %SECUENCIA%_Drv1.%DRV% OTE %SECUENCIA%_P%PASO%.0
+        Send, {Enter}
+
+        ;Se agrega comentario de paso actual.
+        Send, {Ctrl down}d{Ctrl up}
+        Sleep, 500
+        Send, PASO %PASO%
+        Send, {Enter}
+        Send, ==========================================================================
+        Send, {Enter}
+
+        ;Imprimir todos los textos del paso.
+        For each, texto in Textos[A_Index]
+        {
+            Send, %texto%
+            Send, {Enter}
+        }
+        Send, ==========================================================================
+        Send, {Enter 3}
+    }
+    else 
+    {
+        Send, {Enter}
+        Send, EQ %SECUENCIA% %VALOR_EQ% XIO %ERROR% XIO %SECUENCIA%_OK XIC %SECUENCIA%_Drv1.%DRV% OTE %SECUENCIA%_P%PASO%.0
+        Send, {Enter}
+
+        ;Se agrega comentario de paso actual.
+        Send, {Ctrl down}d{Ctrl up}
+        Sleep, 500
+        Send, PASO %PASO%
+        Send, {Enter}
+        Send, ==========================================================================
+        Send, {Enter}
+
+        ;Imprimir todos los textos del paso.
+        For each, texto in Textos[A_Index]
+        {
+            Send, %texto%
+            Send, {Enter}
+        }
+        Send, ==========================================================================
+        Send, {Enter 3}
+    }
+
+
+
+
+Loop, %TOTAL_RENGLONES%
+{
+    ;Valor de índice para loops de renglones.
+    Index_Renglones := A_Index
+
+    ;Se inserta un renglón.
+    Send, {Ctrl down}r{Ctrl up}
+    Sleep, 500 
+
+    ;Se define valores para bits, inicio desde cero.
+    BIT := Index_Renglones - 1
+    SIG_BIT := BIT + INCREMENTO_BITS
+
+    ;Se configuran renglones con bits.
+    Send, {Enter}
+    Send, XIC %SECUENCIA%_P%PASO%.%BIT% OTE %SECUENCIA%_P%PASO%.%SIG_BIT%
+    Send, {Enter}
+}
+
+
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón con movimiento de datos (MOVE).
+Send, {Enter}
+Send, XIC %SECUENCIA%_P%PASO%.%SIG_BIT% MOVE %PASO% %SECUENCIA%
+Send, {Enter}
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón con temporizador (TON).
+Send, {Enter}
+Send, EQ %SECUENCIA% %PASO% XIO %ERROR% TON %SECUENCIA%_P%PASO%_T0 %TIEMPO_TON%
+Send, {Enter}
+
+;Se agrega comentario de driver del paso.
+Send, {Ctrl down}d{Ctrl up}
+Sleep, 500
+Send, DRIVER DEL PASO
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter}
+Send, Se espera un tiempo para activación de driver.
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter 3}
+
+
+
+;Se define valores para bits, inicio desde cero.
+DRV := Index_Pasos - 1
+SIG_DRV := DRV + INCREMENTO_DRV
+
+;Condición: solo en la última iteración
+    if (Index_Pasos = TOTAL_PASOS) 
+    {
+        ;Se inserta un renglón.
+        Send, {Ctrl down}r{Ctrl up}
+        
+        ;Se configura renglón con bit de driver.
+        Send, {Enter}
+        Send, EQ %SECUENCIA% %PASO% XIO %ERROR% XIC %SECUENCIA%_P%PASO%_T0.EN OTL %SECUENCIA%_OK
+        Send, {Enter}
+
+        ;Se agrega comentario driver.
+        Send, {Ctrl down}d{Ctrl up}
+        Sleep, 500
+
+        ;Imprimir todos los textos del paso.
+        For each, texto in Textos[A_Index]
+        {
+            Send, %texto%
+            Send, {Enter 3}
+        }
+    }
+    else
+    {
+        ;Imprimir todos los textos del paso con renglón.
+        For each, texto in Textos[A_Index]
+        {
+            ;Se inserta un renglón.
+            Send, {Ctrl down}r{Ctrl up}
+
+            ;Se configura renglón con bit de driver.
+            Send, {Enter}
+            if (A_Index = 1)
+            {
+                Send, EQ %SECUENCIA% %PASO% XIO %ERROR% XIC %SECUENCIA%_P%PASO%_T0.EN OTE %SECUENCIA%_Drv1.%DRV%
+            }
+            else
+            {
+                Send, EQ %SECUENCIA% %PASO% XIO %ERROR% XIC %SECUENCIA%_P%PASO%_T0.EN OTE
+            }
+            Send, {Enter}
+
+            ;Se agrega comentario driver.
+            Send, {Ctrl down}d{Ctrl up}
+            Sleep, 500
+            Send, %texto%
+            Send, {Enter 3}
+        }
+    }
+}           ;Fin de loop total pasos.
+
+
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón con comparación (EQ) y verificación de bits.
+Send, {Enter}
+Send, EQ %SECUENCIA% %PASO% XIO %ERROR% XIC %SECUENCIA%_OK OTE %SECUENCIA%_P00.0
+Send, {Enter}
+
+;Se agrega comentario de paso actual.
+Send, {Ctrl down}d{Ctrl up}
+Sleep, 500
+Send, PASO 00
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter}
+Send, 1. Secuencia se mueve a paso cero.
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter 3}
+
+Loop, %TOTAL_RENGLONES%
+{
+    ;Valor de índice para loops de renglones.
+    Index_Renglones := A_Index
+
+    ;Se inserta un renglón.
+    Send, {Ctrl down}r{Ctrl up}
+    Sleep, 500 
+
+    ;Se define valores para bits, inicio desde cero.
+    BIT := Index_Renglones - 1
+    SIG_BIT := BIT + INCREMENTO_BITS
+
+    ;Se configuran renglones con bits.
+    Send, {Enter}
+    Send, XIC %SECUENCIA%_P00.%BIT% OTE %SECUENCIA%_P00.%SIG_BIT%
+    Send, {Enter}
+}
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón con movimiento de datos (MOVE).
+Send, {Enter}
+Send, XIC %SECUENCIA%_P00.%SIG_BIT% MOVE 0 %SECUENCIA%
+Send, {Enter}
+
+; Hotkey para cancelar manualmente en cualquier momento
+Esc::ExitApp
