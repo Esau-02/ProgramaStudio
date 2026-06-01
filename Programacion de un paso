@@ -1,0 +1,159 @@
+;Programación de PLC AB.
+#SingleInstance Force   ; siempre reemplaza la instancia anterior sin preguntar
+#NoEnv                  ; optimiza rendimiento
+SendMode Input          ; modo de envío más rápido
+
+;Activa la ventana de Logix Designer con el proyecto abierto
+WinActivate, Logix Designer
+WinWaitActive, Logix Designer
+SetTitleMatchMode, 2    ; permite coincidencia parcial
+
+;/////////////////////////////////////////////////// NO MODIFICAR VARIABLES DE ARRIBA ///////////////////////////////////////////////////
+
+;Definir variable.
+SECUENCIA := "SEC_EDIT_DESCARGAR_PRG"               ;Nombre de la secuencia, variables.
+TOTAL_RENGLONES := 2                    ;Cantidad de renglones a crear.
+INCREMENTO_BITS := 1                    ;Valor para aumento de bits de 1 en 1.
+TIEMPO_TON := 100                       ;Valor de temporizador en pasos.
+ERROR := "Error_General"                ;Bit de error general de máquina.
+VALOR_PASO := 45                        ;Número de paso a crear.
+VALOR_EQ := VALOR_PASO - 5              ;Se resta el valor para coincidir con el valor del paso anterio.
+
+;Lista de textos (puedes poner los que quieras)
+Textos := []
+Textos.Push(["Texto Paso 1", "Extra Paso 1"])
+
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón
+Send, {Enter}
+Send, EQ %SECUENCIA% %VALOR_EQ% XIO %ERROR% XIO %SECUENCIA%_OK XIC OTE %SECUENCIA%_P%VALOR_PASO%.0
+Send, {Enter}
+
+;Se agrega comentario de paso actual.
+Send, {Ctrl down}d{Ctrl up}
+Sleep, 500
+Send, PASO %VALOR_PASO%
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter}
+
+;Imprimir todos los textos del paso.
+    For each, texto in Textos[1]
+    {
+        Send, %texto%
+        Send, {Enter}
+    }
+Send, ==========================================================================
+Send, {Enter 3}
+
+
+Loop, %TOTAL_RENGLONES%
+{
+    ;Valor de índice para loops de renglones.
+    Index_Renglones := A_Index
+
+    ;Se inserta un renglón.
+    Send, {Ctrl down}r{Ctrl up}
+    Sleep, 500 
+
+    ;Se define valores para bits, inicio desde cero.
+    BIT := Index_Renglones - 1
+    SIG_BIT := BIT + INCREMENTO_BITS
+
+    ;Se configuran renglones con bits.
+    Send, {Enter}
+    Send, XIC %SECUENCIA%_P%VALOR_PASO%.%BIT% OTE %SECUENCIA%_P%VALOR_PASO%.%SIG_BIT%
+    Send, {Enter}
+}
+
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón con movimiento de datos (MOVE).
+Send, {Enter}
+Send, XIC %SECUENCIA%_P%VALOR_PASO%.%SIG_BIT% MOVE %VALOR_PASO% %SECUENCIA%
+Send, {Enter}
+
+;Se inserta un renglón.
+Send, {Ctrl down}r{Ctrl up}
+
+;Se configura renglón con temporizador (TON).
+Send, {Enter}
+Send, EQ %SECUENCIA% %VALOR_PASO% XIO %ERROR% TON %SECUENCIA%_P%VALOR_PASO%_T0 %TIEMPO_TON%
+Send, {Enter}
+
+;Se agrega comentario de driver del paso.
+Send, {Ctrl down}d{Ctrl up}
+Sleep, 500
+Send, DRIVER DEL PASO
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter}
+Send, Se espera un tiempo para activación de driver.
+Send, {Enter}
+Send, ==========================================================================
+Send, {Enter 3}
+
+
+;Imprimir todos los textos del paso con renglón.
+For each, texto in Textos[1]
+    {
+    ;Se inserta un renglón.
+    Send, {Ctrl down}r{Ctrl up}
+
+    ;Se configura renglón con bit de driver.
+    Send, {Enter}            
+    Send, EQ %SECUENCIA% %VALOR_PASO% XIO %ERROR% XIC %SECUENCIA%_P%VALOR_PASO%_T0.EN OTE
+    Send, {Enter}
+
+    ;Se agrega comentario driver.
+    Send, {Ctrl down}d{Ctrl up}
+    Sleep, 500
+    Send, %texto%
+    Send, {Enter 3}
+    }
+
+
+;/////////////////////////////////////////////////// SE DAN DE ALTA VARIABLES DEL PASO ///////////////////////////////////////////////////
+
+;Se configura cuadro de PLC para crear variables internas.
+Send, {Ctrl down}w{Ctrl up}
+Sleep, 2000
+MouseMove, 270, 340
+Click
+Send, {Down 1}          ;Esto es para decidir
+Sleep, 100              ;en que rutina del PLC
+Send, {Up 5}            ;se darán de alta las variables.
+MouseMove, 180, 50
+Click
+
+;Se da de alta bit, variable interna del paso.
+Send, %SECUENCIA%_P%VALOR_PASO%
+Loop, 4
+{
+    Send, {tab}
+    Sleep, 100
+}
+Send, INT
+Send, {Enter}
+
+;Se da de alta temporizador, variable interna del paso.
+Send, {Ctrl down}w{Ctrl up}
+Sleep, 1000
+Send, %SECUENCIA%_P%VALOR_PASO%_T0
+Loop, 4
+{
+    Send, {tab}
+    Sleep, 100
+}
+Send, TIMER
+Send, {Enter}
+
+
+
+; Hotkey para cancelar manualmente en cualquier momento
+Esc::ExitApp
