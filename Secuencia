@@ -1,0 +1,15 @@
+Por ejemplo:
+Tenemos 3 estaciones, entrada, horno y salida, cilindros con posiciones de extendido y contraido.
+Tenemos un pallet con 4 cabidades en donde se coloca producto y a ese producto se le dispensa un líquido con un robot.
+Tenemos una banda en la entrada, un motor de indexado en el horno, una banda en la salida.
+Banda mete pallet
+En la entrada tenemos 3 cilindros de topes , uno al inicio, otro en la seccion de precalentado, otro en la area de dispensado
+En el area de dispensado un cilindro lo fija y el robot proceda a dispensale
+Acabado el disensado cilidnro empuja pallet a elevador, se fija pallet y baja
+Abajo cilindro empuja pallet a horno
+El horno tiene dos puertas una para entrada de pallet y otra para salida de pallet, estas se cierran para mantener temperatura en horno
+El indexado tiene capacidad de 21 pallets, cada cierto tiempo sube una posicion para permitir la entrada a otro pallet
+Al llegar pallet arriba cilindro lo empuja a la siguiente posición para que baje 
+Cuando llega abajo, la estación de salida saca el pallet y lo deja en otro elvador
+El cilindro elevador sube pallet y lo pone en banda
+Banda saca pallet
